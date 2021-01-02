@@ -1,0 +1,3 @@
+include ':nirmalLib'
+include ':app'
+rootProject.name = "Nirmal"
