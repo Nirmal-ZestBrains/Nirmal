@@ -9,6 +9,7 @@ import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
@@ -17,25 +18,61 @@ import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.annotation.ColorRes
-import androidx.annotation.DimenRes
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import androidx.annotation.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
+import kotlinx.android.extensions.LayoutContainer
 import java.io.Serializable
 
 object NirmalLib {
 
 /*------------------------------------------------------------------------------------------------*/
+    /* Ex:
+    recyclerView.withSimpleAdapter(dummyData, R.layout.item_recipe) { data ->
+        itemView.recipe_img.setImageResource(data.drawable)
+        itemView.recipe_name.text = data.name
+    } */
+
+    abstract class BaseRecyclerAdapter<Data : Any>(protected var dataList: List<Data>) : RecyclerView.Adapter<BaseViewHolder<Data>>() {
+        abstract val layoutItemId: Int
+        override fun getItemCount(): Int = dataList.size
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Data> = BaseViewHolder(parent, layoutItemId)
+    }
+
+    class BaseViewHolder<in T>(parent: ViewGroup, @LayoutRes layoutId: Int) : RecyclerView.ViewHolder(parent.inflater(layoutId)), LayoutContainer {
+        override val containerView: View
+            get() = itemView
+    }
+
+    fun ViewGroup.inflater(layoutRes: Int): View = LayoutInflater.from(context).inflate(layoutRes, this, false)
+
+    class SimpleRecyclerAdapter<RecyclerData : Any>(data: List<RecyclerData>, @LayoutRes layoutID: Int, private val onBindView: BaseViewHolder<RecyclerData>.(data: RecyclerData) -> Unit) : BaseRecyclerAdapter<RecyclerData>(data) {
+        override val layoutItemId: Int = layoutID
+        override fun onBindViewHolder(holder: BaseViewHolder<RecyclerData>, position: Int) {
+            holder.onBindView(dataList[position])
+        }
+    }
+
+    fun <T : Any> RecyclerView.withSimpleAdapter(dataList: List<T>, @LayoutRes layoutID: Int, onBindView: BaseViewHolder<T>.(data: T) -> Unit): SimpleRecyclerAdapter<T> {
+        val recyclerAdapter = SimpleRecyclerAdapter(dataList, layoutID, onBindView)
+        adapter = recyclerAdapter
+        return recyclerAdapter
+    }
 /*------------------------------------------------------------------------------------------------*/
+
+    /* used lazy function */
+    
+    /* val button: Button by lazy { findViewById<Button>(R.id.button) }   */
+
+
 /*------------------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------------------*/
